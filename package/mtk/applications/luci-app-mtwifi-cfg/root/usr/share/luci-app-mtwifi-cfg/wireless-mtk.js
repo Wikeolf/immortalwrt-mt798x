@@ -1047,7 +1047,15 @@ return view.extend({
 					if (is_dbdc_main)
 					{
 						o = ss.taboption('advanced', form.Flag, 'whnat', _('Wireless HWNAT'));
-						o.default = o.enabled;
+ 						o.default = o.enabled;
+ 						
+ 						o = ss.taboption('advanced', form.Flag, 'bandsteering', _('Band Steering'));
+ 						o.default = o.disabled;
+ 						
+						o = ss.taboption('advanced', form.Value, 'dtim_period', _('DTIM Interval'), _('Delivery Traffic Indication Message Interval'));
+						o.optional = true;
+						o.placeholder = 1;
+						o.datatype = 'range(1,255)';
 	
 						o = ss.taboption('advanced', form.Value, 'beacon_int', _('Beacon Interval'));
 						o.optional = true;
@@ -1318,6 +1326,10 @@ return view.extend({
 					o = ss.taboption('advanced', form.Flag, 'ieee80211k', _('802.11k'), _('Enables The 802.11k standard provides information to discover the best available access point'));
 					o.default = o.enabled;
 					o.depends('mode', 'ap');
+					
+					o = ss.taboption('advanced', form.Flag, 'ieee80211r', _('802.11r'), _('only supports mt_wifi driver'));
+					o.default = o.disabled;
+					o.depends('mode', 'ap');
 
 					o = ss.taboption('advanced', form.Value, 'wpa_group_rekey', _('Time interval for rekeying GTK'), _('sec'));
 					o.optional    = true;
@@ -1330,7 +1342,7 @@ return view.extend({
 					o.placeholder = 0;
 					o.datatype = 'range(-100,0)';
 					o.depends('mode', 'ap');
-
+					
 					o = ss.taboption('advanced', form.Value, 'assocthres', _('Station associate threshold'), _('dBm'));
 					o.optional    = true;
 					o.placeholder = 0;
