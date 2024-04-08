@@ -896,29 +896,162 @@ endef
 $(eval $(call KernelPackage,ikconfig))
 
 
-define KernelPackage/zram
+define KernelPackage/io-schedulers
   SUBMENU:=$(OTHER_MENU)
-  TITLE:=ZRAM
-  DEPENDS:=+kmod-lib-lzo
-  KCONFIG:= \
-	CONFIG_ZSMALLOC \
-	CONFIG_ZRAM \
-	CONFIG_ZRAM_DEBUG=n \
-	CONFIG_PGTABLE_MAPPING=n \
-	CONFIG_ZRAM_WRITEBACK=n \
-	CONFIG_ZSMALLOC_STAT=n
+  TITLE:=Extra I/O Schedulers
+  KCONFIG:=CONFIG_MQ_IOSCHED_DEADLINE \
+    CONFIG_MQ_IOSCHED_KYBER \
+    CONFIG_IOSCHED_BFQ
   FILES:= \
-	$(LINUX_DIR)/mm/zsmalloc.ko \
-	$(LINUX_DIR)/drivers/block/zram/zram.ko
-  AUTOLOAD:=$(call AutoLoad,20,zsmalloc zram)
+    $(LINUX_DIR)/block/bfq.ko \
+    $(LINUX_DIR)/block/kyber-iosched.ko \
+    $(LINUX_DIR)/block/mq-deadline.ko
+  AUTOLOAD:=$(call AutoLoad,15,bfq kyber-iosched mq-deadline,1)
 endef
 
-define KernelPackage/zram/description
- Compressed RAM block device support
+define KernelPackage/io-schedulers/description
+ This package contains extra I/O schedulers
 endef
 
-$(eval $(call KernelPackage,zram))
+$(eval $(call KernelPackage,io-schedulers))
 
+
+define KernelPackage/zsmalloc
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=ZSMALLOC
+  KCONFIG:= \
+    CONFIG_ZSMALLOC \
+    CONFIG_ZSMALLOC_STAT=n
+  FILES:=$(LINUX_DIR)/mm/zsmalloc.ko
+  AUTOLOAD:=$(call AutoLoad,19,zsmalloc)
+endef
+
+define KernelPackage/zsmalloc/description
+ ZSMALLOC is a simple memory allocator that can be used to
+ allocate memory in compressed form.
+endef
+
+$(eval $(call KernelPackage,zsmalloc))
+
+
+define KernelPackage/zram-writeback
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=ZRAM with writeback support
+  DEPENDS:=+kmod-zsmalloc
+  KCONFIG:= \
+    CONFIG_ZRAM \
+    CONFIG_ZRAM_DEBUG=n \
+    CONFIG_ZRAM_WRITEBACK=y
+  FILES:= \
+    $(LINUX_DIR)/drivers/block/zram/zram.ko
+  AUTOLOAD:=$(call AutoLoad,20,zram)
+endef
+
+define KernelPackage/zram-writeback/description
+ Compressed RAM block device support with writeback support
+endef
+
+define KernelPackage/zram-writeback/config
+  if PACKAGE_kmod-zram-writeback
+    choice
+      prompt "ZRAM Default compressor"
+      default KERNEL_ZRAM_DEF_COMP_ZSTD
+
+    config KERNEL_ZRAM_DEF_COMP_LZORLE
+            bool "lzo-rle"
+            select PACKAGE_kmod-lib-lzo
+
+    config KERNEL_ZRAM_DEF_COMP_LZO
+            bool "lzo"
+            select PACKAGE_kmod-lib-lzo
+
+    config KERNEL_ZRAM_DEF_COMP_LZ4
+            bool "lz4"
+            select PACKAGE_kmod-lib-lz4
+
+    config KERNEL_ZRAM_DEF_COMP_LZ4HC
+            bool "lz4-hc"
+            select PACKAGE_kmod-lib-lz4
+
+    config KERNEL_ZRAM_DEF_COMP_ZSTD
+            bool "zstd"
+            select PACKAGE_kmod-lib-zstd
+
+    endchoice
+  endif
+endef
+
+$(eval $(call KernelPackage,zram-writeback))
+
+
+define KernelPackage/zswap
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=ZSWAP (Compressed Swap Cache)
+  DEPENDS:=+kmod-zsmalloc
+  KCONFIG:= \
+    CONFIG_FRONTSWAP=y \
+    CONFIG_Z3FOLD \
+    CONFIG_ZBUD \
+    CONFIG_ZPOOL \
+    CONFIG_ZSWAP=y \
+    CONFIG_ZSWAP_DEFAULT_ON=n
+  FILES:= \
+    $(LINUX_DIR)/mm/z3fold.ko \
+    $(LINUX_DIR)/mm/zbud.ko \
+    $(LINUX_DIR)/mm/zpool.ko
+  AUTOLOAD:=$(call AutoLoad,20,z3fold zbud zpool)
+endef
+
+define KernelPackage/zswap/description
+ Compressed frontswap LRU cache support
+endef
+
+define KernelPackage/zswap/config
+  if PACKAGE_kmod-zswap
+    choice
+      prompt "ZSWAP Default compressor"
+      default KERNEL_ZSWAP_COMPRESSOR_DEFAULT_ZSTD
+
+    config KERNEL_ZSWAP_COMPRESSOR_DEFAULT_LZORLE
+            bool "lzo-rle"
+            select PACKAGE_kmod-lib-lzo
+
+    config KERNEL_ZSWAP_COMPRESSOR_DEFAULT_LZO
+            bool "lzo"
+            select PACKAGE_kmod-lib-lzo
+
+    config KERNEL_ZSWAP_COMPRESSOR_DEFAULT_LZ4
+            bool "lz4"
+            select PACKAGE_kmod-lib-lz4
+
+    config KERNEL_ZSWAP_COMPRESSOR_DEFAULT_LZ4HC
+            bool "lz4-hc"
+            select PACKAGE_kmod-lib-lz4
+
+    config KERNEL_ZSWAP_COMPRESSOR_DEFAULT_ZSTD
+            bool "zstd"
+            select PACKAGE_kmod-lib-zstd
+
+    endchoice
+
+    choice
+      prompt "ZSWAP Default zpool"
+      default KERNEL_ZSWAP_ZPOOL_DEFAULT_Z3FOLD
+
+    config KERNEL_ZSWAP_ZPOOL_DEFAULT_Z3FOLD
+            bool "z3fold"
+
+    config KERNEL_ZSWAP_ZPOOL_DEFAULT_ZBUD
+            bool "zbud"
+
+    config KERNEL_ZSWAP_ZPOOL_DEFAULT_ZSMALLOC
+            bool "zsmalloc"
+
+    endchoice
+  endif
+endef
+
+$(eval $(call KernelPackage,zswap))
 
 define KernelPackage/pps
   SUBMENU:=$(OTHER_MENU)

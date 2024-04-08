@@ -151,13 +151,17 @@ define KernelPackage/lib-lz4
   DEPENDS:=+kmod-crypto-acompress
   KCONFIG:= \
 	CONFIG_CRYPTO_LZ4 \
+	CONFIG_CRYPTO_LZ4HC \
 	CONFIG_LZ4_COMPRESS \
-	CONFIG_LZ4_DECOMPRESS
+	CONFIG_LZ4_DECOMPRESS \
+  CONFIG_LZ4HC_COMPRESS
   FILES:= \
 	$(LINUX_DIR)/crypto/lz4.ko \
+	$(LINUX_DIR)/crypto/lz4hc.ko \
 	$(LINUX_DIR)/lib/lz4/lz4_compress.ko \
-	$(LINUX_DIR)/lib/lz4/lz4_decompress.ko
-  AUTOLOAD:=$(call AutoProbe,lz4 lz4_compress lz4_decompress)
+	$(LINUX_DIR)/lib/lz4/lz4_decompress.ko \
+	$(LINUX_DIR)/lib/lz4/lz4hc_compress.ko
+  AUTOLOAD:=$(call AutoProbe,lz4 lz4hc lz4_compress lz4_decompress lz4hc_compress)
 endef
 
 define KernelPackage/lib-lz4/description
