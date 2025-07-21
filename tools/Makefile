@@ -23,7 +23,7 @@ endif
 
 tools-y += autoconf autoconf-archive automake bc bison cmake dosfstools
 tools-y += e2fsprogs fakeroot findutils firmware-utils flex gengetopt
-tools-y += libressl libtool lzma m4 make-ext4fs missing-macros mkimage
+tools-y += libressl libtool lzma m4 make-ext4fs missing-macros mkimage upx
 tools-y += mklibs mm-macros mtd-utils mtools ninja padjffs2 patch-image
 tools-y += patchelf pkgconf quilt squashfskit4 sstrip zip zlib zstd
 tools-y += crc32sum
